@@ -4,6 +4,8 @@ class Tensor(val row: Int, val col: Int) {
     val data = MutableList(row) { MutableList(col) { 0.0 } }
     val T: Tensor
         get() = this.transpose()
+    val shape: Pair<Int, Int>
+        get() = Pair(row, col)
 
     constructor(row: Int, col: Int, value: Double): this(row, col) {
         for (i in 0..<this.row)

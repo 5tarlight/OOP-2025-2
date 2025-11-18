@@ -31,6 +31,7 @@ fun main() {
     do {
         if (input == 1) {
             print("CSV 파일 경로 : ")
+            scanner.nextLine() // 버퍼 비우기
             val path = scanner.nextLine()
             importer = CsvImporter(path)
         } else {
@@ -46,5 +47,8 @@ fun main() {
         }
     } while (!importer.available())
 
-    println(importer.read())
+    println("데이터 불러오는 중...")
+    val (x, y) = importer.read()
+    println("데이터 불러오기 완료!")
+    println("x: ${x.shape}, y: ${y.shape}")
 }
