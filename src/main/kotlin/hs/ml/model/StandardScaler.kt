@@ -3,7 +3,7 @@ package hs.ml.model
 import hs.ml.data.Tensor
 import kotlin.math.sqrt
 
-class StandardScaler : Model {
+class StandardScaler : Scaler {
     private lateinit var mean: Tensor
     private lateinit var std: Tensor
     private var fitted = false
@@ -52,7 +52,7 @@ class StandardScaler : Model {
         return out
     }
 
-    fun inverseTransform(x: Tensor): Tensor {
+    override fun inverseTransform(x: Tensor): Tensor {
         require(fitted) { "StandardScaler is not fitted yet" }
 
         val out = Tensor(x.row, x.col)

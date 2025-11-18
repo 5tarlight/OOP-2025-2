@@ -6,11 +6,11 @@ class LinearRegressor: Model {
     var weights: Tensor = Tensor(0, 0)
     var bias: Double = 0.0
     var isTrained: Boolean = false
-    lateinit var scaler: StandardScaler
+    lateinit var scaler: Scaler
 
     override fun fit(xOriginal: Tensor, y: Tensor, epochs: Int, lr: Double) {
         scaler = StandardScaler()
-        scaler.fit(xOriginal, y, epochs, lr)
+        scaler.fit(xOriginal)
         val x = scaler.predict(xOriginal)
 
         weights = Tensor(x.col, 1) { i, j -> 0.0 }
