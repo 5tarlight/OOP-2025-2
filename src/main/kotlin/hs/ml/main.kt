@@ -51,4 +51,6 @@ fun main() {
     val (x, y) = importer.read()
     println("데이터 불러오기 완료!")
     println("x: ${x.shape}, y: ${y.shape}")
+
+    println("\n================================\n\n")
 }
