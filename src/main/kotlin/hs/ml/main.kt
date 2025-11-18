@@ -11,7 +11,7 @@ fun main() {
     println("Mem : ${formatBytes(Runtime.getRuntime().maxMemory())}")
     println()
 
-    val t1 = Tensor(2, 2, 1.0)
-    val t2 = Tensor(2, 3, 2.0)
-    println(t1 * t2)
+    val t1 = Tensor(2, 3, 2.0)
+    println(t1)
+    println(t1.T)
 }

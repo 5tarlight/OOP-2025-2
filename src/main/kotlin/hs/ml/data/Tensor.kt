@@ -1,9 +1,9 @@
 package hs.ml.data
 
 class Tensor(val row: Int, val col: Int) {
-    val data: MutableList<MutableList<Double>> = MutableList(row) {
-        MutableList(col) { 0.0 }
-    }
+    val data = MutableList(row) { MutableList(col) { 0.0 } }
+    val T: Tensor
+        get() = this.transpose()
 
     constructor(row: Int, col: Int, value: Double): this(row, col) {
         for (i in 0..<this.row)
@@ -59,6 +59,15 @@ class Tensor(val row: Int, val col: Int) {
             }
         }
         return ans
+    }
+
+    fun transpose(): Tensor {
+        val tensor = Tensor(this.col, this.row)
+        for (i in 0..<this.row)
+            for (j in 0..<this.col)
+                tensor[j][i] = this[i][j]
+
+        return tensor
     }
 
     override fun toString(): String {
