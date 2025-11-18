@@ -38,6 +38,10 @@ class Evaluator {
             return sum / (y.row * y.col)
         }
 
+        fun rmse(y: Tensor, yhat: Tensor): Double {
+            return kotlin.math.sqrt(mse(y, yhat))
+        }
+
         fun r2(y: Tensor, yhat: Tensor): Double {
             val mean = (0 until y.row).sumOf { y[it, 0] } / y.row
             var ssTot = 0.0

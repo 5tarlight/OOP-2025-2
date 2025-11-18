@@ -64,9 +64,10 @@ fun main() {
     model.fit(x, y, epochs = 1000, lr = 0.001)
     println("모델 학습 완료!")
     println(model)
-    val score = model.evaluate(x, y, Evaluator::mse)
+
+    val rmse = model.evaluate(x, y, Evaluator::rmse)
     val r2 = model.evaluate(x, y, Evaluator::r2)
-    println("모델 평가 점수 (MSE) : $score")
+    println("모델 평가 점수 (RMSE) : $rmse")
     println("모델 평가 점수 (R2) : $r2")
     println("")
 }
