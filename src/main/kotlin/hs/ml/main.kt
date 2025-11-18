@@ -1,17 +1,46 @@
 package hs.ml
 
-import hs.ml.data.Tensor
+import hs.ml.importer.CsvImporter
+import hs.ml.importer.DataImporter
+import hs.ml.importer.LinearDataGenerator
 import hs.ml.util.formatBytes
 import java.io.File
+import java.util.Scanner
 
 fun main() {
+    println("\n\n================================")
     println("OOP Machine Learning Project")
     println("PWD : ${File(".").canonicalFile}")
     println("CPU : ${Runtime.getRuntime().availableProcessors()} cores")
     println("Mem : ${formatBytes(Runtime.getRuntime().maxMemory())}")
     println()
 
-    val t1 = Tensor(2, 3, 2.0)
-    println(t1)
-    println(t1.T)
+    val scanner = Scanner(System.`in`)
+    var input = -1
+
+    println("**데이터 입력 단계**")
+    println("1. CSV파일 불러오기")
+    println("2. 랜덤 선형 데이터 생성하기")
+
+    do {
+        print(">> ")
+        input = scanner.nextInt()
+    } while (input != 1 && input != 2)
+
+    do {
+        var importer: DataImporter
+        if (input == 1) {
+            print("CSV 파일 경로 : ")
+            val path = scanner.nextLine()
+            importer = CsvImporter(path)
+        } else {
+            print("기울기 : ")
+            val slope = scanner.nextDouble()
+            print("절편 : ")
+            val bias = scanner.nextDouble()
+            print("노이즈 : ")
+            val noise = scanner.nextDouble()
+            importer = LinearDataGenerator(slope, bias, noise)
+        }
+    } while (!importer.available())
 }
