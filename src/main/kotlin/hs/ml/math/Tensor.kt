@@ -43,6 +43,15 @@ class Tensor(val row: Int, val col: Int) {
         return ans
     }
 
+    operator fun plus(v: Double): Tensor {
+        val ans = Tensor(this.row, this.col)
+        for (i in 0..<this.row)
+            for (j in 0..<this.col)
+                ans[i, j] = this[i][j] + v
+
+        return ans
+    }
+
     operator fun minus(tensor: Tensor): Tensor {
         if (this.row != tensor.row || this.col != tensor.col)
             throw IllegalArgumentException("크기가 다른 두 행렬을 더할 수 없습니다.")
