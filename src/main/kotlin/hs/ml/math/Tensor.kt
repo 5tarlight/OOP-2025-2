@@ -89,6 +89,26 @@ class Tensor(val row: Int, val col: Int) {
         return tensor
     }
 
+    fun max(): Double {
+        var ans = Double.MIN_VALUE;
+        for (i in 0 until this.row)
+            for (j in 0 until this.col)
+                if (ans < this[i, j])
+                    ans = this[i, j]
+
+        return ans
+    }
+
+    fun min(): Double {
+        var ans = Double.MAX_VALUE;
+        for (i in 0 until this.row)
+            for (j in 0 until this.col)
+                if (ans > this[i, j])
+                    ans = this[i, j]
+
+        return ans
+    }
+
     override fun toString(): String {
         val builder = StringBuilder()
         for (i in 0..<this.row) {
