@@ -4,5 +4,6 @@
 
 ## UML
 
-<img width="1460" height="678" alt="image" src="https://github.com/user-attachments/assets/87d29987-e2ed-4750-bd7c-85c3ad179b2e" />
+<img width="1562" height="745" alt="image" src="https://github.com/user-attachments/assets/f6a9485e-b83d-4eb7-9796-7f7304ee80ea" />
+
 
