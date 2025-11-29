@@ -2,8 +2,8 @@ package hs.ml.train
 
 import hs.ml.loss.Loss
 import hs.ml.metric.Metric
-import hs.ml.model.LinearRegressor
-import hs.ml.model.LogisticRegressor
+import hs.ml.model.regressor.LinearRegressor
+import hs.ml.model.classifier.LogisticRegressor
 import hs.ml.model.Model
 import hs.ml.model.ModelParameter
 import hs.ml.scaler.Scaler

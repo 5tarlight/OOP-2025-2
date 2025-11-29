@@ -1,4 +1,4 @@
-package hs.ml.model
+package hs.ml.model.regressor
 
 import hs.ml.math.Tensor
 

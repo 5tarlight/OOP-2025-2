@@ -4,7 +4,7 @@ import hs.ml.importer.CsvImporter
 import hs.ml.importer.DataImporter
 import hs.ml.importer.LinearDataGenerator
 import hs.ml.metric.RootMeanSquaredError
-import hs.ml.model.LinearRegressor
+import hs.ml.model.regressor.LinearRegressor
 import hs.ml.scaler.StandardScaler
 import hs.ml.train.ModelFactory
 import hs.ml.util.formatBytes
