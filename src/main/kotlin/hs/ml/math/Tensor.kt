@@ -19,6 +19,23 @@ class Tensor(val row: Int, val col: Int) {
                 this[i, j] = value(i, j)
     }
 
+    constructor(data: MutableList<MutableList<Double>>): this(data.size,data[0].size){
+        for(i in 0..<this.row){
+            for(j in 0..<this.col){
+                this.data[i][j]=data[i][j]
+            }
+        }
+    }
+
+    constructor(dataArray: Array<DoubleArray>): this(dataArray.size, dataArray[0].size) {
+        // Array 타입을 MutableList로 변환하는 로직을 내부에서 처리합니다.
+        for (i in 0 until this.row) {
+            for (j in 0 until this.col) {
+                this.data[i][j] = dataArray[i][j]
+            }
+        }
+    }
+
     operator fun get(idx: Int) = data[idx]
     operator fun get(i: Int, j: Int) = data[i][j]
     operator fun set(i: Int, j: Int, v: Double) { data[i][j] = v }
