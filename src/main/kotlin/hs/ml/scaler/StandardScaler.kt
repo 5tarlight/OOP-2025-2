@@ -8,6 +8,7 @@ class StandardScaler : Scaler() {
     private lateinit var std: Tensor
 
     override fun fit(x: Tensor, y: Tensor, epochs: Int, lr: Double) {
+        println("StandardScaler: fit 시작...")
         val cols = x.col
         mean = Tensor(1, cols) { j, _ ->
             var sum = 0.0
@@ -31,6 +32,7 @@ class StandardScaler : Scaler() {
 
     override fun transform(x: Tensor): Tensor {
         require(isTrained) { "Scaler가 학습되지 않았습니다. fit 메서드를 먼저 호출하세요." }
+        println("StandardScaler: transform 실행 중...")
 
         val result = Tensor(x.row, x.col) { i, j ->
             if (std[0, j] != 0.0) {

@@ -28,11 +28,6 @@ class ModelFactory<T: Model>(
         }
     }
 
-    fun setScaler(scaler: Scaler): ModelFactory<T> {
-        param.scaler = scaler
-        return this
-    }
-
     fun setLoss(loss: Loss): ModelFactory<T> {
         param.loss = loss
         return this

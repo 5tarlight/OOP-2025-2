@@ -11,7 +11,6 @@ import hs.ml.scaler.StandardScaler
 import hs.ml.train.ModelFactory
 import hs.ml.train.Trainer
 import hs.ml.train.optimizer.Adam
-import hs.ml.train.optimizer.SGD
 import hs.ml.util.formatBytes
 import java.io.File
 
@@ -30,7 +29,10 @@ fun main() {
     val importer = CsvImporter("data/housing.csv")
     val pipeline = DataPipeline(
         importer = importer,
-        preprocessor = DataPreprocessor(missingPolicy = ReplaceToAvgPolicy())
+        preprocessor = DataPreprocessor(
+            missingPolicy = ReplaceToAvgPolicy(),
+            scaler = StandardScaler()
+        )
     )
     val batch = pipeline.run()
 
@@ -40,9 +42,8 @@ fun main() {
     println("\n**모델 선택 단계**\n")
 
     val model = ModelFactory.create<LinearRegressor>()
-        .setScaler(StandardScaler())
         .setLoss(MeanSquaredError())
-        .setOptimizer(Adam(lr = 0.001))
+        .setOptimizer(Adam(lr = 0.0001))
         .addMetric(RootMeanSquaredError())
         .getModel()
 
