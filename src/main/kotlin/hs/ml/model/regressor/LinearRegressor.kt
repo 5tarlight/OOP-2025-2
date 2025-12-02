@@ -1,6 +1,7 @@
-package hs.ml.model
+package hs.ml.model.regressor
 
 import hs.ml.math.Tensor
+import hs.ml.model.regressor.Regressor
 
 class LinearRegressor: Regressor() {
     override var weights: Tensor = Tensor(0, 0)

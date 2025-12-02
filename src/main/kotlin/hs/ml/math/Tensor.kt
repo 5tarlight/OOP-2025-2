@@ -97,6 +97,26 @@ class Tensor(val row: Int, val col: Int) {
         return ans
     }
 
+    operator fun times(scalar: Double): Tensor {
+        return Tensor(this.row, this.col) { i, j ->
+            this[i, j] * scalar
+        }
+    }
+
+    infix fun hadamard(other: Tensor): Tensor {
+        if (this.row != other.row || this.col != other.col)
+            throw IllegalArgumentException("행렬 곱의 차원이 일치하지 않습니다.")
+        return Tensor(this.row, this.col) { i, j ->
+            this[i, j] * other[i, j]
+        }
+    }
+
+    fun map(transform: (Double) -> Double): Tensor {
+        return Tensor(this.row, this.col) { i, j ->
+            transform(this[i, j])
+        }
+    }
+
     fun transpose(): Tensor {
         val tensor = Tensor(this.col, this.row)
         for (i in 0..<this.row)

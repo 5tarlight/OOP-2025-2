@@ -1,4 +1,4 @@
-package hs.ml.model
+package hs.ml.model.classifier
 
 import hs.ml.math.Tensor
 import kotlin.math.exp

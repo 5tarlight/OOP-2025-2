@@ -4,7 +4,7 @@ import hs.ml.data.DataPipeline
 import hs.ml.importer.CsvImporter
 import hs.ml.loss.MeanSquaredError
 import hs.ml.metric.RootMeanSquaredError
-import hs.ml.model.LinearRegressor
+import hs.ml.model.regressor.LinearRegressor
 import hs.ml.preprocessing.DataPreprocessor
 import hs.ml.preprocessing.policy.ReplaceToAvgPolicy
 import hs.ml.scaler.StandardScaler
