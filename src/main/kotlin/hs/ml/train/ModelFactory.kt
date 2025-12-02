@@ -7,6 +7,7 @@ import hs.ml.model.classifier.LogisticRegressor
 import hs.ml.model.Model
 import hs.ml.model.ModelParameter
 import hs.ml.scaler.Scaler
+import hs.ml.train.optimizer.Optimizer
 
 class ModelFactory<T: Model>(
     private val model: T
@@ -27,13 +28,13 @@ class ModelFactory<T: Model>(
         }
     }
 
-    fun setScaler(scaler: Scaler): ModelFactory<T> {
-        param.scaler = scaler
+    fun setLoss(loss: Loss): ModelFactory<T> {
+        param.loss = loss
         return this
     }
 
-    fun setLoss(loss: Loss): ModelFactory<T> {
-        param.loss = loss
+    fun setOptimizer(optimizer: Optimizer): ModelFactory<T> {
+        param.optimizer = optimizer
         return this
     }
 
