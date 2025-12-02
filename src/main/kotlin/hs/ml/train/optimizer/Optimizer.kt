@@ -1,9 +1,9 @@
 package hs.ml.train.optimizer
 
-import hs.ml.math.Tensor
+import hs.ml.autograd.Node
 
-interface Optimizer {
-    val lr: Double
+abstract class Optimizer {
+    abstract val lr: Double
 
-    fun step(params: Pair<Tensor, Double>, gradients: Pair<Tensor, Double>): Pair<Tensor, Double>
+    abstract fun step(params: List<Node>)
 }

@@ -1,5 +1,6 @@
 package hs.ml.train
 
+import hs.ml.autograd.Node
 import hs.ml.data.DataBatch
 import hs.ml.math.Tensor
 import hs.ml.model.Model
@@ -8,31 +9,42 @@ class Trainer(
     val model: Model,
 ) {
     fun trainStep(batch: DataBatch): Double {
+        val inputs = Node(batch.inputs)
+
         // Forward pass
-        val predictions = model.forward(batch.inputs)
+        val pred: Node = model.forward(inputs)
 
         // Compute loss and gradients
-        val loss = model.param.loss.compute(batch.labels, predictions)
-        val gradients = model.param.loss.gradient(batch.labels, predictions)
+        val loss = model.param.loss.compute(batch.labels, pred.data)
+        val (grad, _) = model.param.loss.gradient(batch.labels, pred.data)
 
         // Update model parameters
-        val (w, b) = model.param.optimizer.step(Pair(model.weights, model.bias), gradients)
-        model.weights = w
-        model.bias = b
+        pred.backward(grad)
+        model.param.optimizer.step(model.params())
+
+        model.params().forEach {
+            it.grad = Tensor(it.data.row, it.data.col, 0.0)
+        }
 
         return loss
     }
 
     fun train(batch: DataBatch, epochs: Int = 1000, verbose: Boolean = false) {
-        model.weights = Tensor(batch.inputs.col, batch.labels.col) { i, j ->
-            Math.random() * 0.01
-        }
-        model.bias = 0.0
+        val startEpoch = model.epoch + 1
+        val targetEpoch = model.epoch + epochs
 
-        for (epoch in 1..epochs) {
+        if (verbose) {
+            println("Training started: Epoch $startEpoch to $targetEpoch")
+        }
+
+        for (i in startEpoch..targetEpoch) {
             val loss = trainStep(batch)
-            if (verbose && epoch % 100 == 0)
-                println("Epoch $epoch, Loss: $loss")
+
+            model.epoch = i
+
+            if (verbose && i % 100 == 0) {
+                println("Epoch $i, Loss: $loss")
+            }
         }
     }
 }

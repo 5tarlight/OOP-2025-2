@@ -1,6 +1,6 @@
 package hs.ml.train.optimizer
 
-import hs.ml.math.Tensor
+import hs.ml.autograd.Node
 
 class SGD : Optimizer {
     override var lr: Double
@@ -10,12 +10,11 @@ class SGD : Optimizer {
         this.lr = lr
     }
 
-    override fun step(params: Pair<Tensor, Double>, gradients: Pair<Tensor, Double>): Pair<Tensor, Double> {
-        val w = Tensor(params.first.row, params.first.col) { i, j ->
-            params.first[i][j] - (lr * gradients.first[i][j])
+    override fun step(params: List<Node>) {
+        for (param in params) {
+            val stepSize = param.grad * lr
+            val newWeight = param.data - stepSize
+            param.data = newWeight
         }
-        val b = gradients.second.let { params.second - (lr * it) }
-
-        return Pair(w, b)
     }
 }

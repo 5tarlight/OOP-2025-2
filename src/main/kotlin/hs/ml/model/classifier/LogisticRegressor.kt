@@ -1,33 +1,33 @@
 package hs.ml.model.classifier
 
+import hs.ml.autograd.Node
 import hs.ml.math.Tensor
-import kotlin.math.exp
+import hs.ml.model.nn.Dense
 
 class LogisticRegressor : Classifier() {
-    override var weights: Tensor = Tensor(0, 0)
-    override var bias: Double = 0.0
+    private var layer: Dense? = null
+    val weights: Tensor
+        get() = layer?.weights?.data ?: Tensor(0, 0)
 
-    override fun forward(x: Tensor): Tensor {
-        require(x.col == weights.row) { "입력 데이터의 특성 수와 모델의 가중치 수가 일치하지 않습니다." }
+    val bias: Tensor
+        get() = layer?.bias?.data ?: Tensor(0, 0)
 
-        val yhat = Tensor(x.row, 1) { i, j ->
-            var linearSum = 0.0
-            for (k in 0 until x.col) {
-                linearSum += x[i, k] * weights[k, 0]
-            }
-            val z = linearSum + bias
-            1 / (1 + exp(-z))
+    override fun forward(x: Node): Node {
+        if (layer == null) {
+            layer = Dense(x.data.col, 1)
         }
 
-        return yhat
+        return layer!!.forward(x)
+    }
+
+    override fun params(): List<Node> {
+        return layer?.params() ?: emptyList()
     }
 
     override fun classify(x: Tensor, threshold: Double): Tensor {
-        val probabilities = forward(x)
-        val predictions = Tensor(probabilities.row, 1) { i, j ->
-            if (probabilities[i, 0] >= threshold) 1.0 else 0.0
-        }
-        return predictions
+        val inputVal = Node(x)
+        val outVal = forward(inputVal)
+        return outVal.data
     }
 
     override fun toString(): String = "LogisticRegressor(weights=$weights, bias=$bias, isTrained=$isTrained)"

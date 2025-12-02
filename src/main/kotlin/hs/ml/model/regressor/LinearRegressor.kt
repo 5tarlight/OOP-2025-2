@@ -1,18 +1,33 @@
 package hs.ml.model.regressor
 
+import hs.ml.autograd.Node
 import hs.ml.math.Tensor
-import hs.ml.model.regressor.Regressor
+import hs.ml.model.nn.Dense
 
 class LinearRegressor: Regressor() {
-    override var weights: Tensor = Tensor(0, 0)
-    override var bias: Double = 0.0
+    private var layer: Dense? = null
+    val weights: Tensor
+        get() = layer?.weights?.data ?: Tensor(0, 0)
 
-    override fun forward(x: Tensor): Tensor {
-        return x * weights + bias
+    val bias: Tensor
+        get() = layer?.bias?.data ?: Tensor(0, 0)
+
+    override fun forward(x: Node): Node {
+        if (layer == null) {
+            layer = Dense(x.data.col, 1)
+        }
+
+        return layer!!.forward(x)
+    }
+
+    override fun params(): List<Node> {
+        return layer?.params() ?: emptyList()
     }
 
     override fun predict(x: Tensor): Tensor {
-        return forward(x)
+        val inputVal = Node(x)
+        val outVal = forward(inputVal)
+        return outVal.data
     }
 
     override fun toString(): String = "LinearRegressor(weights=$weights, bias=$bias, isTrained=$isTrained)"

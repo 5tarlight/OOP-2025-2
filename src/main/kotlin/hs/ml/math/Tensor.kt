@@ -1,5 +1,7 @@
 package hs.ml.math
 
+import kotlin.math.pow
+
 class Tensor(val row: Int, val col: Int) {
     val data = MutableList(row) { MutableList(col) { 0.0 } }
     val T: Tensor
@@ -49,24 +51,26 @@ class Tensor(val row: Int, val col: Int) {
     }
 
     operator fun plus(tensor: Tensor): Tensor {
-        if (this.row != tensor.row || this.col != tensor.col)
-            throw IllegalArgumentException("크기가 다른 두 행렬을 더할 수 없습니다.")
-
-        val ans = Tensor(this.row, this.col)
-        for (i in 0..<this.row)
-            for (j in 0..<this.col)
-                ans[i, j] = this[i][j] + tensor[i, j]
-
-        return ans
-    }
-
-    operator fun plus(v: Double): Tensor {
-        val ans = Tensor(this.row, this.col)
-        for (i in 0..<this.row)
-            for (j in 0..<this.col)
-                ans[i, j] = this[i][j] + v
-
-        return ans
+        if (this.row == tensor.row && this.col == tensor.col) {
+            val ans = Tensor(this.row, this.col)
+            for (i in 0..<this.row)
+                for (j in 0..<this.col)
+                    ans[i, j] = this[i, j] + tensor[i, j]
+            return ans
+        }
+        //Broadcasting
+        else if (tensor.row == 1 && this.col == tensor.col) {
+            val ans = Tensor(this.row, this.col)
+            for (i in 0..<this.row) {
+                for (j in 0..<this.col) {
+                    ans[i, j] = this[i, j] + tensor[0, j] // 같은 열의 값을 계속 더함
+                }
+            }
+            return ans
+        }
+        else {
+            throw IllegalArgumentException("더할 수 있는 형태가 아닙니다.")
+        }
     }
 
     operator fun minus(tensor: Tensor): Tensor {
@@ -103,11 +107,11 @@ class Tensor(val row: Int, val col: Int) {
         }
     }
 
-    infix fun hadamard(other: Tensor): Tensor {
-        if (this.row != other.row || this.col != other.col)
+    infix fun hadamard(tensor: Tensor): Tensor {
+        if (this.row != tensor.row || this.col != tensor.col)
             throw IllegalArgumentException("Shapes must match for Hadamard product")
         return Tensor(this.row, this.col) { i, j ->
-            this[i, j] * other[i, j]
+            this[i, j] * tensor[i, j]
         }
     }
 
@@ -115,6 +119,11 @@ class Tensor(val row: Int, val col: Int) {
         return Tensor(this.row, this.col) { i, j ->
             transform(this[i, j])
         }
+    }
+
+    //Element-wise pow
+    fun pow(exponent: Int): Tensor {
+        return this.map { it.pow(exponent) }
     }
 
     fun transpose(): Tensor {
@@ -126,8 +135,33 @@ class Tensor(val row: Int, val col: Int) {
         return tensor
     }
 
+    fun sum(axis: Int): Tensor {
+        if (axis == 0) {
+            val res = Tensor(1, this.col)
+            for (j in 0 until this.col) {
+                var s = 0.0
+                for (i in 0 until this.row) {
+                    s += this[i, j]
+                }
+                res[0, j] = s
+            }
+            return res
+        } else if (axis == 1) {
+            val res = Tensor(this.row, 1)
+            for (i in 0 until this.row) {
+                var s = 0.0
+                for (j in 0 until this.col) {
+                    s += this[i, j]
+                }
+                res[i, 0] = s
+            }
+            return res
+        }
+        throw IllegalArgumentException("잘못된 축이 입력되었습니다.")
+    }
+
     fun max(): Double {
-        var ans = Double.MIN_VALUE;
+        var ans = -Double.MIN_VALUE;
         for (i in 0 until this.row)
             for (j in 0 until this.col)
                 if (ans < this[i, j])

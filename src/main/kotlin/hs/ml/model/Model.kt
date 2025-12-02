@@ -1,12 +1,13 @@
 package hs.ml.model
 
-import hs.ml.math.Tensor
+import hs.ml.autograd.Node
 
 abstract class Model {
-    abstract var weights: Tensor
-    abstract var bias: Double
     var param: ModelParameter = ModelParameter()
-    var isTrained: Boolean = false
+    var epoch: Int = 0 //For future training
+    val isTrained: Boolean
+        get() = epoch > 0
 
-    abstract fun forward(x: Tensor): Tensor
+    abstract fun params(): List<Node>
+    abstract fun forward(x: Node): Node
 }
