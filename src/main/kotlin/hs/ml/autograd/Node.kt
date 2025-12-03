@@ -9,19 +9,17 @@ class Node(var data: Tensor, val children: List<Node> = emptyList(), val debug: 
 
     operator fun plus(other: Node): Node {
         val out = Node(this.data + other.data, listOf(this, other), "+")
+        fun updateGrad(node: Node) {
+            if (node.data.shape == out.grad.shape) {
+                node.grad += out.grad
+            } else if (node.data.row == 1 && node.data.col == out.grad.col) {
+                node.grad += out.grad.sum(axis = Tensor.Axis.VERTICAL)
+            }
+        }
 
         out._backward = {
-            if (this.data.shape == out.grad.shape) {
-                this.grad = this.grad + out.grad
-            } else if (this.data.row == 1 && this.data.col == out.grad.col) {
-                this.grad = this.grad + out.grad.sum(axis = 0)
-            }
-
-            if (other.data.shape == out.grad.shape) {
-                other.grad = other.grad + out.grad
-            } else if (other.data.row == 1 && other.data.col == out.grad.col) {
-                other.grad = other.grad + out.grad.sum(axis = 0)
-            }
+            updateGrad(this)
+            updateGrad(other)
         }
         return out
     }

@@ -5,10 +5,9 @@ import hs.ml.data.DataBatch
 import hs.ml.math.Tensor
 import hs.ml.metric.Metric
 import hs.ml.model.Model
+import hs.ml.train.policy.StoppingPolicy
 
-class Trainer(
-    val model: Model,
-) {
+class Trainer(val model: Model, val stoppingPolicy: StoppingPolicy? = null) {
     fun trainStep(batch: DataBatch): Double {
         val inputs = Node(batch.inputs)
 
@@ -51,24 +50,32 @@ class Trainer(
         return results
     }
 
-    fun train(batch: DataBatch, epochs: Int = 1000, verbose: Boolean = false, showMetric: Int = 100) {
+    fun train(batch: DataBatch, epochs: Int = 1000, verbose: Boolean = false, evalEpoch: Int = 100) {
         val startEpoch = model.epoch + 1
         val targetEpoch = model.epoch + epochs
 
-        if (verbose) {
-            println("Training started: Epoch $startEpoch to $targetEpoch")
-        }
+        if (verbose) println("Training started: Epoch $startEpoch to $targetEpoch")
+        stoppingPolicy?.reset()
 
         for (i in startEpoch..targetEpoch) {
-            trainStep(batch)
+            val loss = trainStep(batch)
             model.epoch = i
 
-            if (verbose && i % showMetric == 0) {
+            val shouldStop = stoppingPolicy?.shouldStop(i, loss) ?: false
+            val shouldLog = verbose && i % evalEpoch == 0
+
+            if (shouldLog || shouldStop) {
                 val metrics = evaluate(batch)
                 val logMsg = metrics.entries.joinToString(", ") { (name, value) ->
                     "$name: ${String.format("%.4f", value)}"
                 }
-                println("Epoch $i | $logMsg")
+
+                if (shouldStop) {
+                    println("Training stopped by stopping policy. Epoch $i | $logMsg")
+                    break
+                } else {
+                    println("Epoch $i | $logMsg")
+                }
             }
         }
     }

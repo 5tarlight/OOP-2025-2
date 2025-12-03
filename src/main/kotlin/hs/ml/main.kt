@@ -14,22 +14,31 @@ import hs.ml.preprocessing.policy.ReplaceToAvgPolicy
 import hs.ml.scaler.StandardScaler
 import hs.ml.train.Trainer
 import hs.ml.train.optimizer.Adam
+import hs.ml.train.policy.EarlyStoppingPolicy
 import hs.ml.util.formatBytes
 import java.io.File
 
 class HousingNeuralNet(inputSize: Int) : Model() {
-    private val fc1 = Dense(inputSize, 32)
+    private val fc = arrayOf(
+        Dense(inputSize, 16),
+        Dense(16, 4),
+    )
+    private val linear = Dense(4, 1)
     private val relu = ReLU()
-    private val fc2 = Dense(32, 1)
 
     override fun forward(x: Node): Node {
-        val z1 = fc1.forward(x)
-        val a1 = relu.forward(z1)
-        val z2 = fc2.forward(a1)
-        return z2
+        var output = x
+        for (layer in fc) {
+            output = layer.forward(output)
+            output = relu.forward(output)
+        }
+        output = linear.forward(output)
+
+        return output
     }
+
     override fun params(): List<Node> {
-        return fc1.params() + fc2.params()
+        return fc.flatMap { it.params() } + linear.params()
     }
 
     override fun toString(): String {
@@ -67,7 +76,8 @@ fun main() {
     println("모델 생성 완료! : $model")
 
     println("\n**학습 시작**\n")
-    val trainer = Trainer(model)
+    val stoppingPolicy = EarlyStoppingPolicy(100, 0.01)
+    val trainer = Trainer(model, stoppingPolicy)
     trainer.train(batch, epochs = 1000, verbose = true)
     println("\n**학습 완료**\n")
 
@@ -81,10 +91,17 @@ fun main() {
         val actual = batch.labels[i, 0]
         val diff = prediction - actual
 
-        println("[$i] 실제값: ${String.format("%.4f", actual)} | 예측값: ${String.format("%.4f", prediction)} | 오차: ${String.format("%.4f", diff)}")
+        println(
+            "[$i] 실제값: ${String.format("%.4f", actual)} | 예측값: ${
+                String.format(
+                    "%.4f",
+                    prediction
+                )
+            } | 오차: ${String.format("%.4f", diff)}"
+        )
     }
 
     println("\n**평가**\n")
-    val selectedResult = trainer.evaluate(batch, RootMeanSquaredError(), F1())
+    val selectedResult = trainer.evaluate(batch, RootMeanSquaredError())
     println("평가: $selectedResult")
 }

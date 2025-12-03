@@ -3,33 +3,38 @@ package hs.ml.math
 import kotlin.math.pow
 
 class Tensor(val row: Int, val col: Int) {
+    enum class Axis {
+        VERTICAL,
+        HORIZONTAL
+    }
+
     val data = MutableList(row) { MutableList(col) { 0.0 } }
     val T: Tensor
         get() = this.transpose()
     val shape: Pair<Int, Int>
         get() = Pair(row, col)
 
-    constructor(row: Int, col: Int, value: Double): this(row, col) {
+    constructor(row: Int, col: Int, value: Double) : this(row, col) {
         for (i in 0..<this.row)
             for (j in 0..<this.col)
                 this[i, j] = value
     }
 
-    constructor(row: Int, col: Int, value: (Int, Int) -> Double): this(row, col) {
+    constructor(row: Int, col: Int, value: (Int, Int) -> Double) : this(row, col) {
         for (i in 0..<this.row)
             for (j in 0..<this.col)
                 this[i, j] = value(i, j)
     }
 
-    constructor(data: MutableList<MutableList<Double>>): this(data.size,data[0].size){
-        for(i in 0..<this.row){
-            for(j in 0..<this.col){
-                this.data[i][j]=data[i][j]
+    constructor(data: MutableList<MutableList<Double>>) : this(data.size, data[0].size) {
+        for (i in 0..<this.row) {
+            for (j in 0..<this.col) {
+                this.data[i][j] = data[i][j]
             }
         }
     }
 
-    constructor(dataArray: Array<DoubleArray>): this(dataArray.size, dataArray[0].size) {
+    constructor(dataArray: Array<DoubleArray>) : this(dataArray.size, dataArray[0].size) {
         // Array 타입을 MutableList로 변환하는 로직을 내부에서 처리합니다.
         for (i in 0 until this.row) {
             for (j in 0 until this.col) {
@@ -40,7 +45,9 @@ class Tensor(val row: Int, val col: Int) {
 
     operator fun get(idx: Int) = data[idx]
     operator fun get(i: Int, j: Int) = data[i][j]
-    operator fun set(i: Int, j: Int, v: Double) { data[i][j] = v }
+    operator fun set(i: Int, j: Int, v: Double) {
+        data[i][j] = v
+    }
 
     operator fun unaryMinus(): Tensor {
         val tensor = Tensor(this.row, this.col)
@@ -67,8 +74,7 @@ class Tensor(val row: Int, val col: Int) {
                 }
             }
             return ans
-        }
-        else {
+        } else {
             throw IllegalArgumentException("더할 수 있는 형태가 아닙니다.")
         }
     }
@@ -135,29 +141,12 @@ class Tensor(val row: Int, val col: Int) {
         return tensor
     }
 
-    fun sum(axis: Int): Tensor {
-        if (axis == 0) {
-            val res = Tensor(1, this.col)
-            for (j in 0 until this.col) {
-                var s = 0.0
-                for (i in 0 until this.row) {
-                    s += this[i, j]
-                }
-                res[0, j] = s
-            }
-            return res
-        } else if (axis == 1) {
-            val res = Tensor(this.row, 1)
-            for (i in 0 until this.row) {
-                var s = 0.0
-                for (j in 0 until this.col) {
-                    s += this[i, j]
-                }
-                res[i, 0] = s
-            }
-            return res
+    fun sum(axis: Axis): Tensor {
+        return when (axis) {
+            Axis.VERTICAL -> Tensor(1, this.col) { _, j -> (0 ..< row).sumOf { i -> this[i, j] } }
+            Axis.HORIZONTAL -> Tensor(this.row, 1) { i, _ -> this[i].sum() }
+            else -> throw IllegalArgumentException("잘못된 축이 입력되었습니다.")
         }
-        throw IllegalArgumentException("잘못된 축이 입력되었습니다.")
     }
 
     fun max(): Double {
