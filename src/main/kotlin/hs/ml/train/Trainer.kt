@@ -50,7 +50,7 @@ class Trainer(val model: Model, val stoppingPolicy: StoppingPolicy? = null) {
         return results
     }
 
-    fun train(batch: DataBatch, epochs: Int = 1000, verbose: Boolean = false, evalEpoch: Int = 100) {
+    fun train(train: DataBatch, test: DataBatch? = null, epochs: Int = 1000, verbose: Boolean = false, evalEpoch: Int = 100) {
         val startEpoch = model.epoch + 1
         val targetEpoch = model.epoch + epochs
 
@@ -58,14 +58,14 @@ class Trainer(val model: Model, val stoppingPolicy: StoppingPolicy? = null) {
         stoppingPolicy?.reset()
 
         for (i in startEpoch..targetEpoch) {
-            val loss = trainStep(batch)
+            val loss = trainStep(train)
             model.epoch = i
 
             val shouldStop = stoppingPolicy?.shouldStop(i, loss) ?: false
             val shouldLog = verbose && i % evalEpoch == 0
 
             if (shouldLog || shouldStop) {
-                val metrics = evaluate(batch)
+                val metrics = evaluate(test ?: train)
                 val logMsg = metrics.entries.joinToString(", ") { (name, value) ->
                     "$name: ${String.format("%.4f", value)}"
                 }

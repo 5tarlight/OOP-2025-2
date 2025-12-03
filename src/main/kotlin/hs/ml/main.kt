@@ -4,7 +4,6 @@ import hs.ml.autograd.Node
 import hs.ml.data.DataPipeline
 import hs.ml.importer.CsvImporter
 import hs.ml.loss.MeanSquaredError
-import hs.ml.metric.F1
 import hs.ml.metric.RootMeanSquaredError
 import hs.ml.model.Model
 import hs.ml.model.nn.Dense
@@ -16,14 +15,16 @@ import hs.ml.train.Trainer
 import hs.ml.train.optimizer.Adam
 import hs.ml.train.policy.EarlyStoppingPolicy
 import hs.ml.util.formatBytes
+import hs.ml.util.trainTestSplit
 import java.io.File
 
+//시연용 최적값
 class HousingNeuralNet(inputSize: Int) : Model() {
     private val fc = arrayOf(
-        Dense(inputSize, 16),
-        Dense(16, 4),
+        Dense(inputSize, 32),
+        Dense(32, 16),
     )
-    private val linear = Dense(4, 1)
+    private val linear = Dense(16, 1)
     private val relu = ReLU()
 
     override fun forward(x: Node): Node {
@@ -48,7 +49,7 @@ class HousingNeuralNet(inputSize: Int) : Model() {
 
 fun main() {
     println("\n\n================================")
-    println("OOP Machine Learning Project (Neural Net Test)")
+    println("OOP Machine Learning Project")
     println("PWD : ${File(".").canonicalFile}")
     println("CPU : ${Runtime.getRuntime().availableProcessors()} cores")
     println("Mem : ${formatBytes(Runtime.getRuntime().maxMemory())}")
@@ -64,6 +65,7 @@ fun main() {
         )
     )
     val batch = pipeline.run()
+    val (train, test) = trainTestSplit(batch, 0.8)
 
     println("데이터 shape -> x: ${batch.inputs.shape}, y: ${batch.labels.shape}")
     val inputFeatureSize = batch.inputs.col
@@ -71,24 +73,24 @@ fun main() {
     println("\n**모델 생성 단계 (Custom Neural Network)**\n")
     val model = HousingNeuralNet(inputFeatureSize)
     model.param.loss = MeanSquaredError()
-    model.param.optimizer = Adam(lr = 0.01)
+    model.param.optimizer = Adam(lr = 0.0005)
     model.param.metric.add(RootMeanSquaredError())
     println("모델 생성 완료! : $model")
 
     println("\n**학습 시작**\n")
-    val stoppingPolicy = EarlyStoppingPolicy(100, 0.01)
+    val stoppingPolicy = EarlyStoppingPolicy(200, 0.001)
     val trainer = Trainer(model, stoppingPolicy)
-    trainer.train(batch, epochs = 1000, verbose = true)
+    trainer.train(train, test, epochs = 3000, verbose = true)
     println("\n**학습 완료**\n")
 
     println("\n예측 결과 예시 (상위 5개 데이터):")
 
-    val inputVal = Node(batch.inputs)
+    val inputVal = Node(test.inputs)
     val outputVal = model.forward(inputVal)
 
     for (i in 0 until 5) {
         val prediction = outputVal.data[i, 0]
-        val actual = batch.labels[i, 0]
+        val actual = test.labels[i, 0]
         val diff = prediction - actual
 
         println(
@@ -102,6 +104,6 @@ fun main() {
     }
 
     println("\n**평가**\n")
-    val selectedResult = trainer.evaluate(batch, RootMeanSquaredError())
+    val selectedResult = trainer.evaluate(test, RootMeanSquaredError())
     println("평가: $selectedResult")
 }
