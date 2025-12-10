@@ -17,5 +17,11 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(24)
+    jvmToolchain(23)
+}
+
+tasks.jar {
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

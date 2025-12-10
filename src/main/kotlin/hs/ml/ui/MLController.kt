@@ -22,10 +22,10 @@ import hs.ml.scaler.StandardScaler
 import hs.ml.train.Trainer
 import hs.ml.train.optimizer.Adam
 import hs.ml.train.optimizer.SGD
+import hs.ml.train.policy.EarlyStoppingPolicy
 import hs.ml.ui.view.MLView
 import hs.ml.util.trainTestSplit
 import java.io.File
-import kotlin.collections.plus
 
 class MLController(private val view: MLView, private val model: MLModel) {
     fun getImporter(): DataImporter {
@@ -98,60 +98,65 @@ class MLController(private val view: MLView, private val model: MLModel) {
 
     fun start() {
         view.showMessage("OOP Machine Learning Project")
-        view.getInput("INPUT ANY KEY TO CONTINUE")
 
-        view.showMessage("\n**데이터 전처리 단계**")
-        val importer = getImporter()
-        val scaler = getScaler()
-        val policy = getMissingPolicy()
+        while(true) {
+            val run = view.getInput("CONTINUE(Y/N)").lowercase() == "y"
+            if(!run) break
 
-        val pipeline = DataPipeline(
-            importer = importer,
-            preprocessor = DataPreprocessor(policy, scaler)
-        )
+            view.showMessage("\n**데이터 전처리 단계**")
+            val importer = getImporter()
+            val scaler = getScaler()
+            val policy = getMissingPolicy()
 
-        try {
-            model.data = pipeline.run()
-            view.showMessage("데이터 전처리 완료. 데이터 크기: ${model.data!!.inputs.shape}")
+            val pipeline = DataPipeline(
+                importer = importer,
+                preprocessor = DataPreprocessor(policy, scaler)
+            )
 
-            view.showMessage("\n전처리된 데이터 미리보기 (첫 5개 행):")
-            val previewRows = minOf(5, model.data!!.inputs.row)
-            for (i in 0 until previewRows) {
-                val rowValues = (0 until model.data!!.inputs.col).joinToString(", ") { j ->
-                    String.format("%.4f", model.data!!.inputs[i, j])
+            try {
+                model.data = pipeline.run()
+                view.showMessage("데이터 전처리 완료. 데이터 크기: ${model.data!!.inputs.shape}")
+
+                view.showMessage("\n전처리된 데이터 미리보기 (첫 5개 행):")
+                val previewRows = minOf(5, model.data!!.inputs.row)
+                for (i in 0 until previewRows) {
+                    val rowValues = (0 until model.data!!.inputs.col).joinToString(", ") { j ->
+                        String.format("%.4f", model.data!!.inputs[i, j])
+                    }
+
+                    view.showMessage("[$i] $rowValues")
                 }
 
-                view.showMessage("[$i] $rowValues")
+                val (train, test) = trainTestSplit(model.data!!, 0.8)
+
+                view.showMessage("\n**모델 생성 단계**")
+                val model = getModel(train.inputs.col)
+                view.showMessage("모델 생성 완료: $model")
+
+                view.showMessage("\n**학습 시작**")
+                val es = EarlyStoppingPolicy(50, view.getInput("Early Stopping 요구치").toDoubleOrNull() ?: 0.0)
+                val trainer = Trainer(model, es)
+                val epochs = view.getInput("epoch").toIntOrNull() ?: 1000
+                trainer.train(train, epochs = epochs, verbose = view::showTrainingLog)
+
+                view.showMessage("\n**학습 완료**")
+                view.showMessage("Model = $model")
+
+                view.showMessage("\n**테스트 데이터 평가**")
+                val testInputs = Node(test.inputs)
+                val predictions = model.forward(testInputs)
+
+                val limit = minOf(5, test.labels.row)
+                for (i in 0 until limit) {
+                    val predVal = predictions.data[i, 0]
+                    val actualVal = test.labels[i, 0]
+                    view.showEvaluationResult(i, actualVal, predVal)
+                }
+
+            } catch (e: Exception) {
+                view.showError("${e.message}")
+                e.printStackTrace()
             }
-
-            val (train, test) = trainTestSplit(model.data!!, 0.8)
-
-            view.showMessage("\n**모델 생성 단계**")
-            val model = getModel(train.inputs.col)
-            view.showMessage("모델 생성 완료: $model")
-
-            view.showMessage("\n**학습 시작**")
-            val trainer = Trainer(model)
-            val epochs = view.getInput("epoch").toIntOrNull() ?: 1000
-            trainer.train(train, epochs = epochs, verbose = view::showTrainingLog)
-
-            view.showMessage("\n**학습 완료**")
-            view.showMessage("Model = $model")
-
-            view.showMessage("\n**테스트 데이터 평가**")
-            val testInputs = Node(test.inputs)
-            val predictions = model.forward(testInputs)
-
-            val limit = minOf(5, test.labels.row)
-            for (i in 0 until limit) {
-                val predVal = predictions.data[i, 0]
-                val actualVal = test.labels[i, 0]
-                view.showEvaluationResult(i, actualVal, predVal)
-            }
-
-        } catch (e: Exception) {
-            view.showError("${e.message}")
-            e.printStackTrace()
         }
     }
 }

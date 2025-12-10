@@ -38,7 +38,9 @@ class HousingNeuralNet(inputSize: Int) : Model() {
 }
 
 fun main() {
-    val view = ConsoleView()
+    val height = 20
+
+    val view = ConsoleView(height)
     val model = MLModel()
     val controller = MLController(view, model)
     controller.start()

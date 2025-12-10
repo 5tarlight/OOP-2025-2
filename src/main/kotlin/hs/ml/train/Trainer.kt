@@ -6,7 +6,6 @@ import hs.ml.math.Tensor
 import hs.ml.metric.Metric
 import hs.ml.model.Model
 import hs.ml.train.policy.StoppingPolicy
-import hs.ml.ui.view.MLView
 
 class Trainer(val model: Model, val stoppingPolicy: StoppingPolicy? = null) {
     fun trainStep(batch: DataBatch): Double {
@@ -33,15 +32,15 @@ class Trainer(val model: Model, val stoppingPolicy: StoppingPolicy? = null) {
     fun evaluate(batch: DataBatch, vararg metrics: Metric): Map<String, Double> {
         val inputs = Node(batch.inputs)
 
+        // Forward pass
         val pred = model.forward(inputs)
-
         val results = mutableMapOf<String, Double>()
 
+        // Compute loss
         val loss = model.param.loss.compute(batch.labels, pred.data)
         results["Loss"] = loss
 
         val targetMetrics = if (metrics.isEmpty()) model.param.metric else metrics.toList()
-
         targetMetrics.forEach { metric ->
             val metricName = metric::class.simpleName ?: "Metric"
             val score = metric.evaluate(batch.labels, pred.data)
@@ -62,13 +61,16 @@ class Trainer(val model: Model, val stoppingPolicy: StoppingPolicy? = null) {
         val targetEpoch = model.epoch + epochs
         val shouldPrint = verbose != null
 
+        // Print if verbose function is not null
         verbose?.invoke(startEpoch, "Training started: Epoch $startEpoch to $targetEpoch")
         stoppingPolicy?.reset()
 
         for (i in startEpoch..targetEpoch) {
+            // Perform one step(forward -> backward)
             val loss = trainStep(train)
             model.epoch = i
 
+            // Stop condition check
             val shouldStop = stoppingPolicy?.shouldStop(i, loss) ?: false
             val shouldLog = shouldPrint && i % evalEpoch == 0
 
