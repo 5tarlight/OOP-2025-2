@@ -57,6 +57,8 @@ class Trainer(val model: Model, val stoppingPolicy: StoppingPolicy? = null) {
         verbose: ((Int, String) -> Unit)? = null,
         evalEpoch: Int = 100
     ) {
+        require(epochs > 0)
+
         val startEpoch = model.epoch + 1
         val targetEpoch = model.epoch + epochs
         val shouldPrint = verbose != null
